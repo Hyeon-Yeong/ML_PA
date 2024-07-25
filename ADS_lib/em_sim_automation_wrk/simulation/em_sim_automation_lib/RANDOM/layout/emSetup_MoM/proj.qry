@@ -1,0 +1,16 @@
+#Momentum: B.2023.21.153 (*) built: Apr 12 2023 
+#Momentum Date and Time: Wed Jul 24 15:08:06 2024
+
+Overall database status : 1 (file present and valid)
+
+Frequency range : from 0.03451518299 GHz to 15 GHz.
+
+Requested frequency range : from 0.03451518299 GHz to 15 GHz.
+
+Individual status fields : (0 = FALSE, 1 = TRUE)
+ File exists             : 1
+ Substrates match        : 1
+ Frequency-range matches : 1
+
+Corresponding potentialpath : /home/unga/hy7593/
+Corresponding potentialname : /home/unga/hy7593//substrates/0014.sdb

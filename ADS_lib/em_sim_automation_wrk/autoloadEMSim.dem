@@ -1,0 +1,16 @@
+/* Begin */
+de_open_workspace("/home/local/ace/hy7593/ML_PA/ADS_lib/em_sim_automation_wrk/");
+de_import_design(DE_GDSII_FILE, FALSE, "/home/local/ace/hy7593/ML_PA/gds/gds_for_design_0.gds", "em_sim_automation_lib", "", NULL);
+decl macroContext = de_get_design_context_from_name("em_sim_automation_lib:RANDOM:layout");
+decl pin = db_create_pin(macroContext, 0.0,12500.0,180, db_layerid(1), 1, "P1", 2);
+decl pin = db_create_pin(macroContext, 30000.0,12500.0,0, db_layerid(1), 2, "P2", 2);
+decl pin = db_create_pin(macroContext, 12500.0,10000.0,-90, db_layerid(1), 3, "P3", 2);
+de_select_all();
+de_union();
+decl macroContext = de_get_design_context_from_name("em_sim_automation_lib:RANDOM:layout");
+de_bring_context_to_top_or_open_new_window(macroContext);
+de_save_oa_design("em_sim_automation_lib:RANDOM:layout");
+de_close_all();
+dex_em_writeSimulationFiles("em_sim_automation_lib", "RANDOM", "emSetup", "simulation/em_sim_automation_lib/RANDOM/layout/emSetup_MoM");
+de_close_workspace_without_prompting();
+de_exit();

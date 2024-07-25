@@ -1,0 +1,238 @@
+import meep as mp
+import meep.adjoint as mpa
+import autograd.numpy as npa
+#import meep_materials
+from meep.materials import Cu
+
+from autograd import tensor_jacobian_product, grad
+import gdspy
+import os
+exec(open(os.path.join(os.environ["MODULESHOME"],"init/python")).read())
+import time, sys
+from vt_rrfc import *
+import matplotlib.pyplot as plt
+import pdb
+import keyboard
+#from pynput.keyboard import Controller
+
+
+
+
+class emSim_2port:
+  def __init__(self, 
+               workingPath: str,
+               adsLibName: str,
+               gdsFile: str,
+               csvFile: str,
+               numPorts: int,
+               portPositions,
+               gdsCellName: str,
+               dataFile: str,
+               portPos_pixel,
+               Substrate = None):
+    self.pathName = workingPath
+    self.libName = adsLibName
+    self.gds_file = gdsFile
+    self.csv_file = csvFile
+    self.ports = numPorts
+    self.portPosition = portPositions
+    self.portPos_pixel=portPos_pixel
+    self.cell = gdsCellName
+    self.dataF = dataFile
+    self.sub = Substrate
+  """
+  This code assumes that in your path, you will have an ADS workspace created amd that at 
+  the same level of hierarchy you will have a data folder to collect simulation results 
+  and design results in. The structure should be:
+    ./YOUR_ADS_Workspace_wrk
+    ./data
+    ./data/gds
+    ./data/pixelMaps
+    ./data/spfiles
+    ./data/spfiles/afs
+  This is necessary because of how the simulation environment is created in ADS, and is not
+  necessary for EMX simulations.
+
+  WorkingPath --> base path where files will be placed
+  adsLibName --> name of the ADS library that the simulation will be loaded. This library 
+                 must exist before simulations can be called and run. Working to see if it
+                 is possible to create a library using AEL, but no luck so far
+  gdsFile --> This is the artwork file that will be loaded into ADS to be simulated
+  csvFile --> This is a binary pixel map that shows the pixels that are pop'd (1) and 
+              unpop'd (0)
+  numPorts --> The number of ports that ADS will add to the drawing. 
+  portPositions --> Vector that has the location of up to four ports...will work to expand 
+                    possible port positions
+  cell --> The cell name of the layout in the GDS file. For now, there needs to be a cell 
+           name in the library with an emSetup located under the cell for the simulation 
+           to be launched. Working to see if this can be automated, but no luck so far.
+  dataFile --> This is the name of the data file that will be created at the end of the
+               simulation. 
+  """
+  def momRun_2port(self):
+    # Import GDS into ADS environment and setup environment for simulation
+    aelName = 'autoloadEMSim.dem'
+    createOpenAel(self.pathName, self.libName, self.gds_file, self.ports, \
+                      self.portPosition, aelName, self.cell)
+    
+    #pdb.set_trace()
+
+
+
+    
+    command='ads -m /home/local/ace/hy7593/ML_PA/ADS_lib/'+self.libName+'_wrk/'+ aelName 
+
+    os.system(command)
+    #pdb.set_trace()
+
+
+    time.sleep(8)
+    print('We are still working')
+
+    dataSet = self.dataF.replace(self.pathName + 'data/','') 
+    print(dataSet)
+    #pdb.set_trace()
+    # Run Momentum Simulation
+    os.chdir(self.pathName + self.libName + '_wrk/simulation/' + self.libName + '_lib/' + \
+             self.cell + '/layout/emSetup_MoM/')
+    command = 'adsMomWrapper -O -3D proj proj'
+              #adsMomWrapper -O -3D proj proj'
+    os.system(command)
+
+    
+    # Clean up after Momentum Simulation to prepare for next simulation
+    aelCloseName = 'autoCloseEMSim.dem'
+    createCloseAel(self.pathName,self.libName,aelCloseName, self.cell)
+    
+    
+
+    #pdb.set_trace()
+  
+    os.chdir(self.pathName)
+    # Eveything in its right place :)
+    
+    command = 'mv ' + self.libName + '_wrk/simulation/' + \
+              self.libName + '_lib/' + self.cell + '/layout/emSetup_MoM/proj.afs ' + \
+              'data/spfiles/afs/' + dataSet + \
+              '.afs'
+    os.system(command)
+
+    command = 'mv ' + '/home/local/ace/hy7593/ML_PA/ADS_lib/' + self.libName + '_wrk/simulation/' + \
+              self.libName + '_lib/' + self.cell + '/layout/emSetup_MoM/proj.cti ' + \
+              '/home/local/ace/hy7593/ML_PA/data/spfiles/cti/' + dataSet + \
+              '.cti'
+    
+    os.system(command)
+    #pdb.set_trace()
+
+    # This will delete the layout view, leaving the emSetup so that the environment
+    # is preparted for the next simulation
+    command = 'ads -m /home/local/ace/hy7593/ML_PA/ADS_lib/em_sim_automation_wrk/'+ aelCloseName
+    os.system(command)
+    # This removes the simulation path so the environment can create a fresh one for 
+    # the next simulation. All data should have been moved in steps above.
+    #command = 'rm -rf ' + self.pathName + self.libName + '_wrk/simulation/*'
+    #os.system(command)
+    #pdb.set_trace()
+
+    time.sleep(8)
+    print('Cleaning up!')
+
+
+
+  def emxRun(self, procFile):
+    # Call EMX Simulation
+
+    if self.ports == 1:
+      emsPorts = '-p P000=p1 -p P001=p2 -i P000 '
+      sports = '.s1p'
+    elif self.ports == 2:
+      emsPorts = '-p P000=p1 -p P001=p2 -p P002=p3 -p P003=p4 -i P000 -i P001 '
+      sports = '.s2p'
+    elif self.ports == 3:
+      emsPorts = '-p P000=p1 -p P001=p2 -p P002=p3 -p P003=p4 -p P004=p5 ' + \
+                 '-p P005=p6 -i P000 -i P001 -i P002 '
+      sports = '.s3p'
+    elif self.ports == 4:
+      emsPorts = '-p P000=p1 -p P001=p2 -p P002=p3 -p P003=p4 -p P004=p5 ' + \
+                 '-p P005=p6 -p P006=p7 -p P007=p8 -i P000 -i P001 -i P002 ' + \
+                 '-i P003 '
+      sports = '.s4p'
+    else:
+      print('Only 1, 2, 3, or 4 ports are currently supported')
+
+    # An example setup-tools is included in the repository. This is an example of the tool setup
+    # script for CAD tools used by the RFIC group in MICS at Virginia Tech. All that is needed 
+    # for this script is the EMX setup which will put emx on the path. You also need a
+    # pointer to the proc file you are using.     
+    #+ self.gds_file + ' RANDOM ' + procFile + ' -e 0.2 -t 0.2 -v 0.2 --3d=* ' \
+    command = 'source /software/RFIC/cadtools/cadence/setups/setup-tools; emx ' \
+              + self.gds_file + ' ' + self.cell + ' ' + procFile + ' -e 1 -t 1 -v 0.5 --3d=* ' \
+              + emsPorts + '--sweep 0 1e+11 --sweep-stepsize 1e+08 --verbose=3 --print-command-line -l ' \
+              + '2 --dump-connectivity --quasistatic --dump-connectivity ' \
+              + '--parallel=0 --simultaneous-frequencies=0 --recommended-memory ' \
+              + '--key=EMXkey --format=touchstone -s ' + self.dataF + sports
+
+    os.system(command)
+
+    # Clean up after sim
+    # '.s2p ' + self.pathName + '/data/spfiles/.'
+    os.chdir(self.pathName)
+    command = 'mv ' + self.csv_file + ' ' + self.pathName + '/data/pixelMaps/.; mv ' + \
+              self.gds_file + ' ' + self.pathName + '/data/gds/.; mv ' + self.dataF + \
+              sports + ' ' + self.pathName + '/data/spfiles/.'
+    os.system(command)
+
+  def meepRun(self):
+    
+    # Define specific boundary conditions for meep
+    res = 50 # number of pixels per mil
+    three_d = False # Do a full 3D calculation or no
+    gds = gdspy.GdsLibrary(infile=self.gds_file) # load the GDS file
+    pml_size = 1.0
+    CELL_LAYER = 0
+    PORT1_LAYER = 1
+    PORT2_LAYER = 2
+    PORT3_LAYER = 3
+    PORT4_LAYER = 4
+    SOURCE_LAYER = 5
+    METAL_LAYER = 11
+    
+    # Define materials and frequencies
+    fr4 = mp.Medium(epsilon=4.5)
+    freq = 5e9
+    dpml = 0
+    cell_thickness = dpml + self.sub.t_metal + self.sub.t_sub + self.sub.t_metal + 2*(self.sub.t_metal+self.sub.t_sub) + dpml
+    cell_zmin = 0
+    cell_zmax = cell_zmin + cell_thickness
+    cu_zmax = 0.5*self.sub.t_metal
+    cu_zmin = -0.5*self.sub.t_metal
+
+    # Read the cell size and volumes for the sources and monitors from the GDS file
+    rrc = mp.get_GDSII_prisms(Cu, self.gds_file, METAL_LAYER, cu_zmin, cu_zmax)
+    gnd = mp.get_GDSII_prisms(Cu, self.gds_file, CELL_LAYER, cu_zmin-self.sub.t_sub, cu_zmax-self.sub.t_sub-self.sub.t_metal)
+    cell = mp.GDSII_vol(self.gds_file, CELL_LAYER, 0, 0)
+    src_vol = mp.GDSII_vol(self.gds_file, SOURCE_LAYER, cu_zmax-self.sub.t_sub-self.sub.t_metal, cu_zmin)
+    p1 = mp.GDSII_vol(self.gds_file, PORT1_LAYER, zmin=cu_zmin, zmax=cu_zmax)
+    p2 = mp.GDSII_vol(self.gds_file, PORT2_LAYER, zmin=cu_zmin, zmax=cu_zmax)
+
+    for np in range(len(rrc)):
+      rrc[np].center -= gnd.center
+      for nv in range(len(rrc[np].vertices)):
+        rrc[np].vertices[nv] -= gnd.center
+    src_vol.center -= gnd.center
+    geometry = rrc + gnd
+    sources = [mp.Source(mp.GaussianSource(freq, fwidth=0.5*freq),
+                         component=mp.Ey,
+                         center = src_vol.center,
+                         size = src_vol.size)]
+    sim = mp.Simulation(cell_size=gnd.size,
+                        geometry=geometry,
+                        sources=sources,
+                        resolution=res)
+    freqs = np.linspace(0,10e9,101)
+    s_params = sim.get_S_parameters(freqs, 1)
+    plt.plot(freqs/1e9, np.abs(s_params[0, 0, :]), label='S11')
+    print("hello world")
+    #p3 = mp.GDSII_vol(gds_file, PORT3_LAYER, zmin=cu_zmin, zmax=cu_zmax)
+    #p4 = mp.GDSII_vol(gds_file, PORT4_LAYER, zmin=cu_zmin, zmax=cu_zmax)

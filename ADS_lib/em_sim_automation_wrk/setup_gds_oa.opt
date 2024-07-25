@@ -1,0 +1,19 @@
+<?xml version="1.0" ?>
+<AdsTranslatorSetupFile Version="1.0">
+    <Import>
+        <Layers>
+            <Layer GDSLayer="10" GDSPurpose="0" TransferStatus="0" />
+        </Layers>
+        <MapFileType>1</MapFileType>
+        <EntireHierarchy>1</EntireHierarchy>
+        <TranslationDepth>20</TranslationDepth>
+        <IgnoreBox>0</IgnoreBox>
+        <OverWrite>1</OverWrite>
+        <TextHeight>1</TextHeight>
+        <MapFilePath>/home/local/ace/hy7593/ML_PA/layermap.map</MapFilePath>
+    </Import>
+    <Export>
+        <Layers />
+        <MapFileType>0</MapFileType>
+    </Export>
+</AdsTranslatorSetupFile>

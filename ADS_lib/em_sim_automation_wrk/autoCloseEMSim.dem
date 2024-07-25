@@ -1,0 +1,5 @@
+/* Begin */
+de_open_workspace("/home/local/ace/hy7593/ML_PA/ADS_lib/em_sim_automation_wrk/");
+de_delete_cellview("em_sim_automation_lib", "RANDOM", "layout");
+de_close_workspace_without_prompting();
+de_exit();

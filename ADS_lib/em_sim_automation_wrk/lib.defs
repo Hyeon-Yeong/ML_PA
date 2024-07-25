@@ -1,0 +1,4 @@
+INCLUDE $HPEESOF_DIR/oalibs/analog_rf.defs
+INCLUDE $HPEESOF_DIR/oalibs/dsp.defs
+DEFINE em_sim_automation_lib em_sim_automation_lib
+ASSIGN em_sim_automation_lib libMode shared

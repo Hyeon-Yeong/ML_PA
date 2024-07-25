@@ -1,0 +1,48 @@
+*****************************************************************************
+Tool:		oaStrm              22.60.063
+*****************************************************************************
+Running: oaStrm -templateFile /home/local/ace/hy7593/ML_PA/ADS_lib/em_sim_automation_wrk/mfg/gdsTemplate.txt -lib em_sim_automation_lib -libDefFile none -overwrite -shared -gds /home/local/ace/hy7593/ML_PA/gds/gds_for_design_0.gds -textHeight 1.000000 -hierDepth 1000 -layerMap "/home/local/ace/hy7593/ML_PA/ADS_lib/em_sim_automation_wrk/mfg/LayerMap.map"
+Started: Wed Jul 24 15:08:00 2024 (Hostname: ace.cerc.utexas.edu)
+Reading layer map /home/local/ace/hy7593/ML_PA/ADS_lib/em_sim_automation_wrk/mfg/LayerMap.map
+INFO: (OASTRM-80035): 
+	Library:				em_sim_automation_lib
+	Cell:				
+	View:					layout
+	Tech Library:				YES
+	Cell Case:				Preserve
+	Cell Map:				NO
+	Layer Map:				YES
+	Exclude Map To Via:			NO
+	Property Map:				NO
+	Property Separator:			,
+	Reference Libraries:			NO
+	Overwrite Existing Cells:		YES
+	Append to Existing Database:		NO
+	Ignore Box Records:			NO
+	Convert Paths to PathSegs:		NO
+	Hier Depth:				1000
+	DBUperUU:				1000
+	Log File:				oaStrm.log
+
+
+INFO: (OASTRM-80034): Translating STRUCTURE RANDOM as cellView em_sim_automation_lib/RANDOM/layout.
+INFO: (OASTRM-80036): 
+	Instances:			0
+	CustomVias:			0
+	CustomViaDef:			0
+	Arrays:				0
+	Polygons:			0
+	Paths:				0
+	PathSegs:			0
+	Rectangles:			16601
+	Text:				0
+	Cells:				1
+	Skipped Zero-Area Polygons:	0
+
+
+Finished:	oaStrm
+Time elapsed:	0.03 seconds
+CPU Time:	0.819477 seconds
+System Time:	0.427127 seconds
+Peak VM:	4194304 bytes
+Messages:	0 errors, 0 warnings
